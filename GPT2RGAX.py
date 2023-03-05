@@ -1032,7 +1032,7 @@ class GPT(nn.Module):
         gen_seq = torch.full((num_batches,target_seq_length), TOKEN_PAD, dtype=TORCH_LABEL_TYPE, device=self.device)
 
         num_primer = len(primer)
-        gen_seq[..., :num_primer] = primer.type(TORCH_LABEL_TYPE).to(device)
+        gen_seq[..., :num_primer] = primer.type(TORCH_LABEL_TYPE).to(self.device)
 
         cur_i = num_primer
         while(cur_i < target_seq_length):
