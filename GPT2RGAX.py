@@ -1022,16 +1022,16 @@ class GPT(nn.Module):
 
         return gen_seq[:, :cur_i]
 
-    def generate_batches(self, primer=None, target_seq_length=1024, temperature=1, num_batches=1, verbose=True):
+    def generate_batches(self, primer=None, target_seq_length=1024, temperature=1, num_batches=1, verbose=True, device=TORCH_CPU_DEVICE):
 
         assert (not self.training), "Cannot generate while in training mode"
 
         if verbose: print("Generating sequence of max length:", target_seq_length)
 
-        gen_seq = torch.full((num_batches,target_seq_length), TOKEN_PAD, dtype=TORCH_LABEL_TYPE, device=get_device())
+        gen_seq = torch.full((num_batches,target_seq_length), TOKEN_PAD, dtype=TORCH_LABEL_TYPE, device=device)
 
         num_primer = len(primer)
-        gen_seq[..., :num_primer] = primer.type(TORCH_LABEL_TYPE).to(get_device())
+        gen_seq[..., :num_primer] = primer.type(TORCH_LABEL_TYPE).to(device)
 
         cur_i = num_primer
         while(cur_i < target_seq_length):
