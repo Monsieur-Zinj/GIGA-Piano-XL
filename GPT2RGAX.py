@@ -862,7 +862,7 @@ def _skew(qe):
 class GPT(nn.Module):
     """  the full GPT language model, with a context size of block_size """
 
-    def __init__(self, config):
+    def __init__(self, config, device=TORCH_CPU_DEVICE):
         super().__init__()
 
         # input embedding stem
@@ -876,6 +876,7 @@ class GPT(nn.Module):
         self.head = nn.Linear(config.n_embd, config.vocab_size, bias=False)
         self.softmax = nn.Softmax(dim=-1)
         self.enable_rpr = config.enable_rpr
+        self.device=device
 
         self.block_size = config.block_size
         self.apply(self._init_weights)
@@ -943,7 +944,7 @@ class GPT(nn.Module):
     def forward(self, idx, targets=None):
         b, t = idx.size()
         if self.enable_rpr:
-            mask = generate_square_subsequent_mask(t).to(get_device())
+            mask = generate_square_subsequent_mask(t).to(self.device())
         else:
             mask = None
             
@@ -979,10 +980,10 @@ class GPT(nn.Module):
 
         if verbose: print("Generating sequence of max length:", target_seq_length)
 
-        gen_seq = torch.full((1,target_seq_length), TOKEN_PAD, dtype=TORCH_LABEL_TYPE, device=get_device())
+        gen_seq = torch.full((1,target_seq_length), TOKEN_PAD, dtype=TORCH_LABEL_TYPE, device=self.device)
 
         num_primer = len(primer)
-        gen_seq[..., :num_primer] = primer.type(TORCH_LABEL_TYPE).to(get_device())
+        gen_seq[..., :num_primer] = primer.type(TORCH_LABEL_TYPE).to(self.device)
 
         cur_i = num_primer
         while(cur_i < target_seq_length):
@@ -1022,13 +1023,13 @@ class GPT(nn.Module):
 
         return gen_seq[:, :cur_i]
 
-    def generate_batches(self, primer=None, target_seq_length=1024, temperature=1, num_batches=1, verbose=True, device=TORCH_CPU_DEVICE):
+    def generate_batches(self, primer=None, target_seq_length=1024, temperature=1, num_batches=1, verbose=True):
 
         assert (not self.training), "Cannot generate while in training mode"
 
         if verbose: print("Generating sequence of max length:", target_seq_length)
 
-        gen_seq = torch.full((num_batches,target_seq_length), TOKEN_PAD, dtype=TORCH_LABEL_TYPE, device=device)
+        gen_seq = torch.full((num_batches,target_seq_length), TOKEN_PAD, dtype=TORCH_LABEL_TYPE, device=self.device)
 
         num_primer = len(primer)
         gen_seq[..., :num_primer] = primer.type(TORCH_LABEL_TYPE).to(device)
