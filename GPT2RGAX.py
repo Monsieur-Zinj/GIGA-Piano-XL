@@ -944,7 +944,7 @@ class GPT(nn.Module):
     def forward(self, idx, targets=None):
         b, t = idx.size()
         if self.enable_rpr:
-            mask = generate_square_subsequent_mask(t).to(self.device())
+            mask = generate_square_subsequent_mask(t).to(self.device)
         else:
             mask = None
             
